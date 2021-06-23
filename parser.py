@@ -69,6 +69,11 @@ def parse_xls(files_to_parse):
                 
     return parsed_data
 
+def json_save(path, parsed_data):
+    jout = open(path,'w', encoding='utf8')
+    json.dump(parsed_data, jout, ensure_ascii=False, indent=4)
+    jout.close()
+
 if __name__ == '__main__':
     files_to_parse = []
     #скачиваем файлы
@@ -77,18 +82,13 @@ if __name__ == '__main__':
         types = [(1,'data_LSs.xls'), (2, 'data_MIs.xls')]
         downloaded_files = ThreadPool(len(types)).imap_unordered(download_xls, types)
 
-        
         for file in downloaded_files:
             print(file,"--- %s seconds ---" % (time.time() - start_time))
             files_to_parse.append(file)
             
-    
-
     parsed_data = parse_xls(files_to_parse)
             
-    jout = open('KZ.json','w', encoding='utf8')
-    json.dump(parsed_data,jout,ensure_ascii=False, indent=4)
-    jout.close()
+    json_save('KZ.json', parsed_data)
             
     print('entries parsed - ',len(parsed_data))
     
