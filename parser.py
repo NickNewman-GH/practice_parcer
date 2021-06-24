@@ -3,16 +3,16 @@ import requests
 import json
 import html
 import time
+import os
 from multiprocessing.pool import ThreadPool
-
-start_time = time.time()
 
 def download_xls(params):
     type,filename = params
+    print('--- start downloading %s ---' % filename)
     table_url = 'http://register.ndda.kz/register.php/mainpage/reestr/lang/ru'
     load_url = 'http://register.ndda.kz/register.php/mainpage/exportRegister'
 
-    data={'ReestrTableForNdda[reg_type]': type, 'ReestrTableForNdda[reg_period]': 0}
+    data={'ReestrTableForNdda[reg_type]': type, 'ReestrTableForNdda[reg_period]': 2}
 
     session.post(table_url, data=data)
     response = session.get(load_url)
@@ -70,26 +70,52 @@ def parse_xls(files_to_parse):
     return parsed_data
 
 def json_save(path, parsed_data):
-    jout = open(path,'w', encoding='utf8')
+    jout = open(path, 'w', encoding='utf8')
     json.dump(parsed_data, jout, ensure_ascii=False, indent=4)
     jout.close()
 
 if __name__ == '__main__':
-    files_to_parse = []
-    #скачиваем файлы
-    
-    with requests.Session() as session:
-        types = [(1,'data_LSs.xls'), (2, 'data_MIs.xls')]
-        downloaded_files = ThreadPool(len(types)).imap_unordered(download_xls, types)
 
-        for file in downloaded_files:
-            print(file,"--- %s seconds ---" % (time.time() - start_time))
-            files_to_parse.append(file)
-            
-    parsed_data = parse_xls(files_to_parse)
-            
-    json_save('KZ.json', parsed_data)
-            
-    print('entries parsed - ',len(parsed_data))
+    loop_time = time.time()
+    pause_time = 60 #пауза между выполнениями скрипта в секундах
+
+    while True:
+        if pause_time - (time.time() - loop_time) < -1:
+            loop_time = time.time() + 30
+            print('\n!RESULTS WILL BE CLOSED IN 30 SECS!')
+            while loop_time > time.time():
+                continue
+            os.system('cls' if os.name == 'nt' else 'clear')
+
+        if time.time() - loop_time > pause_time:
+            start_time = time.time()
     
-    print('parsing complete',"--- %s seconds ---" % (time.time() - start_time))
+            files_to_parse = []
+    
+            with requests.Session() as session:
+                #закачка файлов
+                types = [(1,'data_LSs.xls'), (2, 'data_MIs.xls')]
+                downloaded_files = ThreadPool(len(types)).imap_unordered(download_xls, types)
+
+                for file in downloaded_files:
+                    print('--- %s download is complete! it took %s seconds  ---' % (file, (time.time() - start_time)))
+                    files_to_parse.append(file)
+            
+            start_time_parse = time.time()
+
+            print('--- parsing begins ---')
+
+            parsed_data = parse_xls(files_to_parse)
+            json_save('KZ.json', parsed_data)
+            
+            #print('entries parsed - ',len(parsed_data))
+    
+            print('--- parsing complete in %s seconds ---' % (time.time() - start_time_parse))
+            print('--- total time %s seconds ---' % (time.time() - start_time))
+        else:
+            if pause_time - (time.time() - loop_time) > 360:
+                print('%i hour(s) to start the script' % ((pause_time - (time.time() - loop_time))/360), end='\r')
+            elif pause_time - (time.time() - loop_time) > 60:
+                print('%i minute(s) to start the script' % ((pause_time - (time.time() - loop_time))/60), end='\r')
+            else:
+                print('%i second(s) to start the script' % (pause_time - (time.time() - loop_time)), end='\r')
