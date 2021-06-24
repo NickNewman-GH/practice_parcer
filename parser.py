@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import xlrd
 import requests
 import json
