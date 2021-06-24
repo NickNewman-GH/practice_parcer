@@ -12,7 +12,7 @@ def download_xls(params):
     table_url = 'http://register.ndda.kz/register.php/mainpage/reestr/lang/ru'
     load_url = 'http://register.ndda.kz/register.php/mainpage/exportRegister'
 
-    data={'ReestrTableForNdda[reg_type]': type, 'ReestrTableForNdda[reg_period]': 2}
+    data={'ReestrTableForNdda[reg_type]': type, 'ReestrTableForNdda[reg_period]': 0}
 
     session.post(table_url, data=data)
     response = session.get(load_url)
@@ -37,6 +37,12 @@ def process_string_data(string):
     result = html.unescape(result)
     return result
 
+def identity_check(parsed_data, trade_name):
+    for reg_num in parsed_data:
+        if parsed_data[reg_num]['Торговое название'] == trade_name:
+            return False
+    return True
+
 def parse_xls(files_to_parse):
     #открываем файлы
     docs = []
@@ -57,15 +63,16 @@ def parse_xls(files_to_parse):
         #парсим таблицу
         for rownum in range(1,sheet.nrows):
             row = sheet.row_values(rownum)
-            parsed_data[row[1]] = dict()
+            if identity_check(parsed_data, row[3]): #проверка на уникальность
+                parsed_data[row[1]] = dict()
             
-            for i in range(2,len(row)):
-                #если строка, приводим в нормальный вид
-                if(isinstance(row[i],str)):
-                    cell = process_string_data(row[i])
-                else:
-                    cell = row[i] 
-                parsed_data[row[1]][col_names[i-2]] = cell
+                for i in range(2,len(row)):
+                    #если строка, приводим в нормальный вид
+                    if(isinstance(row[i],str)):
+                        cell = process_string_data(row[i])
+                    else:
+                        cell = row[i]
+                    parsed_data[row[1]][col_names[i-2]] = cell
                 
     return parsed_data
 
@@ -77,7 +84,7 @@ def json_save(path, parsed_data):
 if __name__ == '__main__':
 
     loop_time = time.time()
-    pause_time = 60 #пауза между выполнениями скрипта в секундах
+    pause_time = 10 #пауза между выполнениями скрипта в секундах
 
     while True:
         if pause_time - (time.time() - loop_time) < -1:
