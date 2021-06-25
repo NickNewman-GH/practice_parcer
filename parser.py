@@ -38,9 +38,9 @@ def process_string_data(string):
     result = html.unescape(result)
     return result
 
-def identity_check(parsed_data, trade_name):
-    for reg_num in parsed_data:
-        if parsed_data[reg_num]['Торговое название'] == trade_name:
+def identity_check(parsed_data, reg_id):
+    for iden_reg_id in parsed_data:
+        if iden_reg_id == reg_id:
             return False
     return True
 
@@ -64,7 +64,7 @@ def parse_xls(files_to_parse):
         #парсим таблицу
         for rownum in range(1,sheet.nrows):
             row = sheet.row_values(rownum)
-            if identity_check(parsed_data, row[3]): #проверка на уникальность
+            if identity_check(parsed_data, row[1]): #проверка на уникальность
                 parsed_data[row[1]] = dict()
             
                 for i in range(2,len(row)):
