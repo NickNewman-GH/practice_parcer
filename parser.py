@@ -14,7 +14,7 @@ def download_xls(params):
     table_url = 'http://register.ndda.kz/register.php/mainpage/reestr/lang/ru'
     load_url = 'http://register.ndda.kz/register.php/mainpage/exportRegister'
 
-    data={'ReestrTableForNdda[reg_type]': type, 'ReestrTableForNdda[reg_period]': 2}
+    data={'ReestrTableForNdda[reg_type]': type, 'ReestrTableForNdda[reg_period]': 0}
 
     session.post(table_url, data=data)
     response = session.get(load_url)
@@ -113,7 +113,7 @@ if __name__ == '__main__':
                 downloaded_files = ThreadPool(len(types)).imap_unordered(download_xls, types)
                 
                 for file in downloaded_files:
-                    print('--- %s download is complete! it took %s seconds  ---' % (file, (time.time() - start_time)))
+                    print('--- %s download is complete! it took %s seconds ---' % (file, (time.time() - start_time)))
                     files_to_parse.append(file)
                     
             start_time_parse_save = time.time()
