@@ -116,17 +116,24 @@ if __name__ == '__main__':
                     print('--- %s download is complete! it took %s seconds  ---' % (file, (time.time() - start_time)))
                     files_to_parse.append(file)
                     
-            start_time_parse = time.time()
+            start_time_parse_save = time.time()
             
             print('--- parsing begins ---')
 
             parsed_data = parse_xls(files_to_parse)
             
-            json_save('KZ.json', parsed_data)
+            print('--- parsing complete in %s seconds ---' % (time.time() - start_time_parse_save))
             
             print('entries parsed - ',len(parsed_data))
-    
-            print('--- parsing complete in %s seconds ---' % (time.time() - start_time_parse))
+            
+            start_time_parse_save = time.time()
+            
+            print('--- saving in json format begins ---')
+            
+            json_save('KZ.json', parsed_data)
+            
+            print('--- saving complete in %s seconds ---' % (time.time() - start_time_parse_save))
+            
             print('--- total time %s seconds ---' % (time.time() - start_time))
         else:
             if pause_time - (time.time() - loop_time) > 360:
