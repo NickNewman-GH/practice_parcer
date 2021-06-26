@@ -14,7 +14,7 @@ def download_xls(params):
     table_url = 'http://register.ndda.kz/register.php/mainpage/reestr/lang/ru'
     load_url = 'http://register.ndda.kz/register.php/mainpage/exportRegister'
 
-    data={'ReestrTableForNdda[reg_type]': type, 'ReestrTableForNdda[reg_period]': 0}
+    data={'ReestrTableForNdda[reg_type]': type, 'ReestrTableForNdda[reg_period]': 2}
 
     session.post(table_url, data=data)
     response = session.get(load_url)
@@ -88,6 +88,10 @@ def json_save(path, parsed_data):
     json.dump(parsed_data, jout, ensure_ascii=False, indent=4)
     jout.close()
 
+def temp_files_del(files_to_parse):
+    for file in files_to_parse:
+        os.remove(file)
+
 if __name__ == '__main__':
 
     loop_time = time.time()
@@ -97,7 +101,7 @@ if __name__ == '__main__':
     while True:
         if pause_time - (time.time() - loop_time) < -1:
             loop_time = time.time() + 30
-            print('\n!RESULTS WILL BE CLOSED IN 30 SECS!')
+            print('\n!THE RESULTS WILL BE CLEARED IN 30 SECONDS!')
             while loop_time > time.time():
                 continue
             os.system('cls' if os.name == 'nt' else 'clear')
@@ -124,15 +128,21 @@ if __name__ == '__main__':
             
             print('--- parsing complete in %s seconds ---' % (time.time() - start_time_parse_save))
             
-            print('entries parsed - ',len(parsed_data))
+            #print('entries parsed - ',len(parsed_data))
             
             start_time_parse_save = time.time()
             
-            print('--- saving in json format begins ---')
+            print('--- saving in json format ---')
             
             json_save('KZ.json', parsed_data)
             
             print('--- saving complete in %s seconds ---' % (time.time() - start_time_parse_save))
+
+            print('--- deleting temporary files ---')
+
+            temp_files_del(files_to_parse)
+
+            print('--- deleting complete in %s seconds ---' % (time.time() - start_time_parse_save))
             
             print('--- total time %s seconds ---' % (time.time() - start_time))
         else:
