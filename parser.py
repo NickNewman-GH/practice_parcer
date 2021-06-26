@@ -5,6 +5,7 @@ import json
 import html
 import time
 import os
+import datetime
 from multiprocessing.pool import ThreadPool
 
 def download_xls(params):
@@ -13,7 +14,7 @@ def download_xls(params):
     table_url = 'http://register.ndda.kz/register.php/mainpage/reestr/lang/ru'
     load_url = 'http://register.ndda.kz/register.php/mainpage/exportRegister'
 
-    data={'ReestrTableForNdda[reg_type]': type, 'ReestrTableForNdda[reg_period]': 0}
+    data={'ReestrTableForNdda[reg_type]': type, 'ReestrTableForNdda[reg_period]': 2}
 
     session.post(table_url, data=data)
     response = session.get(load_url)
@@ -21,6 +22,7 @@ def download_xls(params):
 
     with open(filename, 'wb') as file:
         file.write(data)
+        
     return filename
 
 def get_col_names(sheet):
@@ -33,17 +35,20 @@ def get_col_names(sheet):
     return col_names
 
 def process_string_data(string):
+    null_values = ['нет данных','()']
     result = string.strip()
     result = result.replace('\n','')
     result = html.unescape(result)
+    
+    if result.lower() in null_values:
+        result = ''
     return result
 
 def identity_check(parsed_data, reg_id):
-    for iden_reg_id in parsed_data:
-        if iden_reg_id == reg_id:
-            return False
+    if reg_id in parsed_data:
+        return False
     return True
-
+    
 def parse_xls(files_to_parse):
     #открываем файлы
     docs = []
@@ -60,7 +65,7 @@ def parse_xls(files_to_parse):
         #заполняем массив имен
         if len(col_names) == 0:
             col_names = get_col_names(sheet)
-            
+        
         #парсим таблицу
         for rownum in range(1,sheet.nrows):
             row = sheet.row_values(rownum)
@@ -77,6 +82,7 @@ def parse_xls(files_to_parse):
                 
     return parsed_data
 
+
 def json_save(path, parsed_data):
     jout = open(path, 'w', encoding='utf8')
     json.dump(parsed_data, jout, ensure_ascii=False, indent=4)
@@ -85,7 +91,8 @@ def json_save(path, parsed_data):
 if __name__ == '__main__':
 
     loop_time = time.time()
-    pause_time = 10 #пауза между выполнениями скрипта в секундах
+    pause_time = 11 #пауза между выполнениями скрипта в секундах
+    t_len = len(str(pause_time)) + 30
 
     while True:
         if pause_time - (time.time() - loop_time) < -1:
@@ -99,31 +106,32 @@ if __name__ == '__main__':
             start_time = time.time()
     
             files_to_parse = []
-    
+            
             with requests.Session() as session:
                 #закачка файлов
                 types = [(1,'data_LSs.xls'), (2, 'data_MIs.xls')]
                 downloaded_files = ThreadPool(len(types)).imap_unordered(download_xls, types)
-
+                
                 for file in downloaded_files:
                     print('--- %s download is complete! it took %s seconds  ---' % (file, (time.time() - start_time)))
                     files_to_parse.append(file)
-            
+                    
             start_time_parse = time.time()
-
+            
             print('--- parsing begins ---')
 
             parsed_data = parse_xls(files_to_parse)
+            
             json_save('KZ.json', parsed_data)
             
-            #print('entries parsed - ',len(parsed_data))
+            print('entries parsed - ',len(parsed_data))
     
             print('--- parsing complete in %s seconds ---' % (time.time() - start_time_parse))
             print('--- total time %s seconds ---' % (time.time() - start_time))
         else:
             if pause_time - (time.time() - loop_time) > 360:
-                print('%i hour(s) to start the script' % ((pause_time - (time.time() - loop_time))/360), end='\r')
+                print(('{0: <%i}' % t_len).format('%i hour(s) to start the script' % ((pause_time - (time.time() - loop_time))/360)), end='\r')
             elif pause_time - (time.time() - loop_time) > 60:
-                print('%i minute(s) to start the script' % ((pause_time - (time.time() - loop_time))/60), end='\r')
+                print(('{0: <%i}' % t_len).format('%i minute(s) to start the script' % ((pause_time - (time.time() - loop_time))/60)), end='\r')
             else:
-                print('%i second(s) to start the script' % (pause_time - (time.time() - loop_time)), end='\r')
+                print(('{0: <%i}' % t_len).format('%i second(s) to start the script' % (pause_time - (time.time() - loop_time))), end='\r')
