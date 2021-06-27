@@ -98,7 +98,7 @@ def download_selenium(browser, way_to_files, show_browser, opt):
     driver1.close()
 
 
-def parse_selenium(browser,show_browser, way_to_files,opt1,opt2,number_of_pages=-1):
+def parse_selenium(browser,show_browser,opt1,opt2,number_of_pages=-1):
     browser=browser.lower()
     if(browser!="firefox" and browser!="chrome"):
         print("no browser with this name")
@@ -109,8 +109,6 @@ def parse_selenium(browser,show_browser, way_to_files,opt1,opt2,number_of_pages=
         path=r"D:\Users\User\Downloads\geckodriver\geckodriver.exe"
     else:
         options=webdriver.ChromeOptions()
-        prefs = {"download.default_directory" : way_to_files}
-        options.add_experimental_option("prefs", prefs)
         path=r"D:\Users\User\Downloads\ChromeDriver\chromedriver.exe"
 
 
@@ -139,34 +137,41 @@ def parse_selenium(browser,show_browser, way_to_files,opt1,opt2,number_of_pages=
         s_download=driver.find_elements_by_tag_name('td')
         old_value=s_download[24].get_attribute("title")
         n=(len(s_download)-35)/11
+        print("page ",j+1," parsing start")
         for i in range(100):
             index=s_download[24+i*23].get_attribute("title")
             if(index not in final_json.keys()):
                 final_json[index]={}
-                final_json[index]['type']=s_download[25+i*23].get_attribute("title")
-                final_json[index]['name']=s_download[26+i*23].get_attribute("title")
-                final_json[index]['registration']=s_download[27+i*23].get_attribute("title")
-                final_json[index]['date']=s_download[28+i*23].get_attribute("title")
-                final_json[index]['srok']=s_download[29+i*23].get_attribute("title")
-                final_json[index]['expiration']=s_download[30+i*23].get_attribute("title")
-                final_json[index]['producter']=s_download[31+i*23].get_attribute("title")
-                final_json[index]['country']=s_download[32+i*23].get_attribute("title")
-                final_json[index]['LS/IMN']=s_download[33+i*23].get_attribute("title")
-                final_json[index]['MNN']=s_download[34+i*23].get_attribute("title")
-                final_json[index]['ATX_classification']=s_download[35+i*23].get_attribute("title")
-                final_json[index]['form']=s_download[36+i*23].get_attribute("title")
-                final_json[index]['dose']=s_download[37+i*23].get_attribute("title")
-                final_json[index]['time_of_storage']=s_download[38+i*23].get_attribute("title")
+                final_json[index]['Тип']=s_download[25+i*23].get_attribute("title")
+                final_json[index]['Торговое название']=s_download[26+i*23].get_attribute("title")
+                final_json[index]['Вид']=s_download[27+i*23].get_attribute("title")
+                final_json[index]['Дата рег.']=s_download[28+i*23].get_attribute("title")
+                final_json[index]['Срок']=s_download[29+i*23].get_attribute("title")
+                final_json[index]['Дата истечения']=s_download[30+i*23].get_attribute("title")
+                final_json[index]['Производитель']=s_download[31+i*23].get_attribute("title")
+                final_json[index]['Страна']=s_download[32+i*23].get_attribute("title")
+                final_json[index]['Классификация ЛС/ИМН']=s_download[33+i*23].get_attribute("title")
+                if(s_download[34+i*23].get_attribute("title")!="Нет данных"):
+                    final_json[index]['МНН']=s_download[34+i*23].get_attribute("title")
+                else:
+                    final_json[index]['МНН']=""
+                if(s_download[35+i*23].get_attribute("title")!="(0) Нет данных"):
+                    final_json[index]['АТХ классификация']=s_download[35+i*23].get_attribute("title")
+                else:
+                    final_json[index]['АТХ классификация']=""
+                final_json[index]['Лек. форма']=s_download[36+i*23].get_attribute("title")
+                final_json[index]['Форма выпуска']=s_download[37+i*23].get_attribute("title")
+                final_json[index]['Срок хранения']=s_download[38+i*23].get_attribute("title")
                 final_json[index]['GMP']=s_download[39+i*23].get_attribute("title")
-                final_json[index]['generic']=s_download[40+i*23].get_attribute("title")
-                final_json[index]['prescription']=s_download[41+i*23].get_attribute("title")
-                final_json[index]['control']=s_download[42+i*23].get_attribute("title")
-                final_json[index]['trademark']=s_download[43+i*23].get_attribute("title")
-                final_json[index]['patent']=s_download[44+i*23].get_attribute("title")
-                final_json[index]['ND_type']=s_download[45+i*23].get_attribute("title")
-                final_json[index]['ND_number']=s_download[46+i*23].get_attribute("title")
+                final_json[index]['Генерик']=s_download[40+i*23].get_attribute("title")
+                final_json[index]['Рецепт']=s_download[41+i*23].get_attribute("title")
+                final_json[index]['Контроль']=s_download[42+i*23].get_attribute("title")
+                final_json[index]['Торг. марка']=s_download[43+i*23].get_attribute("title")
+                final_json[index]['Патент']=s_download[44+i*23].get_attribute("title")
+                final_json[index]['Тип НД']=s_download[45+i*23].get_attribute("title")
+                final_json[index]['№ НД']=s_download[46+i*23].get_attribute("title")
         driver.find_element_by_id("next_register_pager").click()
-        print(j)
+        print("page ",j+1," parsing finished")
         bool=False
         while(bool==False):
             try:
@@ -183,7 +188,7 @@ def parse_selenium(browser,show_browser, way_to_files,opt1,opt2,number_of_pages=
 way_to_files=r"C:\Users\User\source\repos\TestParser\Files"
 file=open("data.json","w", encoding="utf-8")
 #download_selenium("chrome", way_to_files, True,"Все")
-parser=parse_selenium("firefox", True ,way_to_files,"Действующие","ЛС",4)
+parser=parse_selenium("firefox", True ,"Действующие","ЛС",4)
 json.dump(parser, file, ensure_ascii=False, indent=4)
-parser=parse_selenium("firefox", True ,way_to_files,"Действующие","МИ",4)
+parser=parse_selenium("firefox", True ,"Действующие","МИ",4)
 json.dump(parser, file, ensure_ascii=False, indent=4)
