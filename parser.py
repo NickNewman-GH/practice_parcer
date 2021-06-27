@@ -8,22 +8,39 @@ import os
 import datetime
 from multiprocessing.pool import ThreadPool
 
+class DownloadError(Exception):
+    pass
+
+class ParsingError(Exception):
+    pass
+
 def download_xls(params):
-    type,filename = params
-    print('--- start downloading %s ---' % filename)
+    reg_type,filename = params
     table_url = 'http://register.ndda.kz/register.php/mainpage/reestr/lang/ru'
     load_url = 'http://register.ndda.kz/register.php/mainpage/exportRegister'
 
-    data={'ReestrTableForNdda[reg_type]': type, 'ReestrTableForNdda[reg_period]': 2}
+    data={'ReestrTableForNdda[reg_type]':reg_type, 'ReestrTableForNdda[reg_period]': 2}
 
-    session.post(table_url, data=data)
-    response = session.get(load_url)
-    data = response.content
+    try_counter = 3
+    while try_counter:
+        print('--- start downloading %s ---' % filename)
+        try:
+            session.post(table_url, data=data)
+            try:
+                response = session.get(load_url)
+                data = response.content
+                break
+            except:
+                print('--- downloading %s failed ---' % filename)
+                try_counter -= 1
+        except:
+            print('Unable to establish a connection')
+            try_counter -= 1
 
-    with open(filename, 'wb') as file:
-        file.write(data)
-        
-    return filename
+    if not try_counter:
+        return [filename,'fail']
+    else:
+        return [filename,data]
 
 def get_col_names(sheet):
     col_names = []
@@ -52,9 +69,12 @@ def identity_check(parsed_data, reg_id):
 def parse_xls(files_to_parse):
     #открываем файлы
     docs = []
-    for f in files_to_parse:
-        docs.append(xlrd.open_workbook(f,ignore_workbook_corruption=True))
-    
+    try:
+        for f in files_to_parse:
+            docs.append(xlrd.open_workbook(file_contents=f,ignore_workbook_corruption=True))
+    except:
+        raise ParsingError
+
     col_names = []
     parsed_data = {}
 
@@ -65,7 +85,7 @@ def parse_xls(files_to_parse):
         #заполняем массив имен
         if len(col_names) == 0:
             col_names = get_col_names(sheet)
-        
+
         #парсим таблицу
         for rownum in range(1,sheet.nrows):
             row = sheet.row_values(rownum)
@@ -88,20 +108,16 @@ def json_save(path, parsed_data):
     json.dump(parsed_data, jout, ensure_ascii=False, indent=4)
     jout.close()
 
-def temp_files_del(files_to_parse):
-    for file in files_to_parse:
-        os.remove(file)
-
 if __name__ == '__main__':
 
     loop_time = time.time()
-    pause_time = 11 #пауза между выполнениями скрипта в секундах
+    pause_time = 3 #пауза между выполнениями скрипта в секундах
     t_len = len(str(pause_time)) + 30
 
     while True:
         if pause_time - (time.time() - loop_time) < -1:
             loop_time = time.time() + 30
-            print('\n!THE RESULTS WILL BE CLEARED IN 30 SECONDS!')
+            print('\n!RESULTS WILL BE CLOSED IN 30 SECS!')
             while loop_time > time.time():
                 continue
             os.system('cls' if os.name == 'nt' else 'clear')
@@ -114,21 +130,34 @@ if __name__ == '__main__':
             with requests.Session() as session:
                 #закачка файлов
                 types = [(1,'data_LSs.xls'), (2, 'data_MIs.xls')]
-                downloaded_files = ThreadPool(len(types)).imap_unordered(download_xls, types)
                 
-                for file in downloaded_files:
-                    print('--- %s download is complete! it took %s seconds ---' % (file, (time.time() - start_time)))
-                    files_to_parse.append(file)
+                downloaded_files = ThreadPool(len(types)).imap_unordered(download_xls, types)
+                try:
+                    for filename,file in downloaded_files:
+                        if file == 'fail':
+                            raise DownloadError
+                            
+                        print('--- %s download is complete! it took %s seconds  ---' % (filename, (time.time() - start_time)))
+                        files_to_parse.append(file)
+                except DownloadError:
+                    print("An error occured while downloading the files, script will restart later")
+                    loop_time = time.time()
+                    continue
                     
-            start_time_parse_save = time.time()
+            start_time_parse = time.time()
             
             print('--- parsing begins ---')
 
-            parsed_data = parse_xls(files_to_parse)
+            try:
+                parsed_data = parse_xls(files_to_parse)
+            except ParsingError:
+                print("An error occured while parsing the files, script will restart later")
+                loop_time = time.time()
+                continue
             
-            print('--- parsing complete in %s seconds ---' % (time.time() - start_time_parse_save))
+            print('--- parsing complete in %s seconds ---' % (time.time() - start_time_parse))
             
-            #print('entries parsed - ',len(parsed_data))
+            print('--- entries parsed = %i ---' % len(parsed_data))
             
             start_time_parse_save = time.time()
             
@@ -137,13 +166,7 @@ if __name__ == '__main__':
             json_save('KZ.json', parsed_data)
             
             print('--- saving complete in %s seconds ---' % (time.time() - start_time_parse_save))
-
-            print('--- deleting temporary files ---')
-
-            temp_files_del(files_to_parse)
-
-            print('--- deleting complete in %s seconds ---' % (time.time() - start_time_parse_save))
-            
+    
             print('--- total time %s seconds ---' % (time.time() - start_time))
         else:
             if pause_time - (time.time() - loop_time) > 360:
