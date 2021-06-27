@@ -151,7 +151,7 @@ if __name__ == '__main__':
                         if file == 'fail':
                             raise DownloadError
                             
-                        print('--- %s download is complete! it took %s seconds  ---' % (filename, (time.time() - start_time)))
+                        print('--- %s download is complete! it took %s seconds ---' % (filename, (time.time() - start_time)))
                         files_to_parse.append(file)
                 except DownloadError:
                     print("An error occured while downloading the files, script will restart later")
