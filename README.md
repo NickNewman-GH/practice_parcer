@@ -2,7 +2,7 @@
 Как работает программа:
 
 Примерное время процесс работы программы:
---- start downloading data_LSs.xls ---\n
+--- start downloading data_LSs.xls ---
 --- start downloading data_MIs.xls ---
 --- data_MIs.xls download is complete! it took 146.26184964179993 seconds  ---
 --- data_LSs.xls download is complete! it took 159.09277081489563 seconds  ---
