@@ -24,10 +24,10 @@ def download_xls(params):
     table_url = 'http://register.ndda.kz/register.php/mainpage/reestr/lang/ru'
     load_url = 'http://register.ndda.kz/register.php/mainpage/exportRegister'
 
-    data={'ReestrTableForNdda[reg_type]':reg_type, 'ReestrTableForNdda[reg_period]': 0}
+    data={'ReestrTableForNdda[reg_type]':reg_type, 'ReestrTableForNdda[reg_period]': 2}
 
     try_counter = 3
-    while try_counter != 0:
+    while try_counter:
         print('--- start downloading %s ---' % dataname)
         try:
             session.post(table_url, data=data)
