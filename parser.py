@@ -136,7 +136,7 @@ def clear_input_continue(loop_time, pause_time, is_entered_by_user):
             os.system('cls' if os.name == 'nt' else 'clear')
         else:
             try:
-                pause_time = int(input('Enter the interval between scripts in seconds:\n')) #entering the interval between launches
+                pause_time = int(input('Enter the interval between script launches in seconds:\n')) #entering the interval between launches
                 is_entered_by_user = True
                 loop_time = time.time() - pause_time
                 os.system('cls' if os.name == 'nt' else 'clear')
