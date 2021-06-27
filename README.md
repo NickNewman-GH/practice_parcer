@@ -14,6 +14,7 @@
    * requests 
 
 #### Примерное время и процесс работы программы:
+В среднем, работа программы занимает около 3-х минут
 ```
 --- start downloading data_LSs.xls ---
 --- start downloading data_MIs.xls ---
