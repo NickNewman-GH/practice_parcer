@@ -5,8 +5,6 @@ import json
 import html
 import time
 import os
-import datetime
-import sys
 
 from multiprocessing.pool import ThreadPool
 
