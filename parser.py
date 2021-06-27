@@ -14,6 +14,9 @@ class DownloadError(Exception):
 class ParsingError(Exception):
     pass
 
+class InputError(Exception):
+    pass
+
 def download_xls(params):
     reg_type,filename = params
     table_url = 'http://register.ndda.kz/register.php/mainpage/reestr/lang/ru'
