@@ -16,16 +16,16 @@
 #### Примерное время и процесс работы программы:
 В среднем, работа программы занимает около 3-х минут
 ```
---- start downloading data_LSs.xls ---
---- start downloading data_MIs.xls ---
---- data_MIs.xls download is complete! it took 146.26184964179993 seconds  ---
---- data_LSs.xls download is complete! it took 159.09277081489563 seconds  ---
+--- start downloading first part of data ---
+--- start downloading second part of data ---
+--- second part of data is downloaded! it took 170.68313336372375 seconds ---
+--- first part of data is downloaded! it took 175.4182653427124 seconds ---
 --- parsing begins ---
---- parsing complete in 8.639833450317383 seconds ---
+--- parsing complete in 4.540118217468262 seconds ---
 --- entries parsed = 47564 ---
 --- saving in json format ---
---- saving complete in 6.376640796661377 seconds ---
---- total time 174.1092450618744 seconds ---
+--- saving complete in 3.2412168979644775 seconds ---
+--- total time 184.35709595680237 seconds ---
 ```
 # Парсер на "selenium"
 Файл - ```Selenium_parser.py```
