@@ -58,7 +58,7 @@ def process_string_data(string):
     result = string.strip()
     result = result.replace('\n','')
     result = html.unescape(result)
-    #covert all null values to empty string
+    #convert all null values to empty string
     if result.lower() in null_values:
         result = ''
     return result
